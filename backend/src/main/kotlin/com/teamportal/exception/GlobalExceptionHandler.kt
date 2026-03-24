@@ -1,6 +1,7 @@
 package com.teamportal.exception
 
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -31,7 +32,8 @@ class GlobalExceptionHandler {
     @ExceptionHandler(
         MethodArgumentTypeMismatchException::class,
         MissingServletRequestParameterException::class,
-        MethodArgumentNotValidException::class
+        MethodArgumentNotValidException::class,
+        ConstraintViolationException::class
     )
     fun handleBadRequest(
         exception: Exception,
@@ -78,13 +80,19 @@ class GlobalExceptionHandler {
         return when (exception) {
             is MethodArgumentTypeMismatchException -> {
                 val rejectedValue = exception.value?.toString() ?: "null"
-                "Invalid value for '${exception.name}': '$rejectedValue'"
+                "Invalid value for '${exception.name}': '$rejectedValue'. Expected a valid number."
             }
 
             is MissingServletRequestParameterException ->
                 "Missing required parameter: ${exception.parameterName}"
 
-            is MethodArgumentNotValidException -> "Validation failed"
+            is MethodArgumentNotValidException ->
+                exception.bindingResult.fieldErrors.firstOrNull()?.defaultMessage ?: "Validation failed"
+
+            is ConstraintViolationException ->
+                exception.constraintViolations.joinToString("; ") {
+                    "${it.propertyPath}: ${it.message}"
+                }
 
             else -> "Invalid request"
         }

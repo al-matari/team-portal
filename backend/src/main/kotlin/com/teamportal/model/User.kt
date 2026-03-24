@@ -1,6 +1,9 @@
 package com.teamportal.model
 
 import jakarta.persistence.*
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 
 @Entity
 @Table(name = "users")
@@ -9,9 +12,14 @@ class User(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
+    @field:NotBlank(message = "User name must not be blank")
+    @field:Size(min = 3, message = "User name must be at least 3 characters")
     @Column(nullable = false)
     val name: String,
 
+    @field:NotBlank(message = "Email must not be blank")
+    @field:Email(message = "Email must be valid")
+    @field:Size(min = 5, message = "Email must be at least 5 characters")
     @Column(nullable = false, unique = true)
     val email: String,
 
