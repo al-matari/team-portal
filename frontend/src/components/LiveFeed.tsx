@@ -8,28 +8,82 @@ interface Activity {
   timestamp: string
 }
 
+const mergeActivities = (_current: Activity[], incoming: Activity[]) => {
+  return [...incoming]
+    .slice(0, 100)
+}
+
+const getErrorMessage = (error: unknown) => {
+  return error instanceof Error ? error.message : 'Failed to load activities'
+}
+
 function LiveFeed() {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isActive, setIsActive] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const syncActivities = async (shouldIgnore: () => boolean) => {
+    try {
+      const nextActivities = await fetchFeedActivity()
+
+      if (shouldIgnore()) {
+        return
+      }
+
+      setError(null)
+      setActivities((currentActivities) =>
+        mergeActivities(currentActivities, nextActivities)
+      )
+    } catch (error) {
+      if (shouldIgnore()) {
+        return
+      }
+
+      setActivities([])
+      setError(getErrorMessage(error))
+    }
+  }
 
   useEffect(() => {
+    let ignoreResponse = false
+
     const loadInitialActivities = async () => {
-      const initial = await fetchFeedActivity()
-      setActivities(initial)
+      setLoading(true)
+      setError(null)
+
+      await syncActivities(() => ignoreResponse)
+
+      if (!ignoreResponse) {
+        setLoading(false)
+      }
     }
 
     loadInitialActivities()
+
+    return () => {
+      ignoreResponse = true
+    }
   }, [])
 
   useEffect(() => {
     if (!isActive) return
 
+    let ignoreResponse = false
+
+    const pollActivities = async () => {
+      await syncActivities(() => ignoreResponse)
+    }
+
+    void pollActivities()
     const interval = setInterval(async () => {
-      const newActivities = await fetchFeedActivity()
-      setActivities(prev => [...newActivities, ...prev].slice(0, 100))
+      await pollActivities()
     }, 3000)
 
-    return () => clearInterval(interval)
+    return () => {
+      ignoreResponse = true
+     clearInterval(interval)
+    }
   }, [isActive])
 
   const toggleFeed = () => {
@@ -59,7 +113,13 @@ function LiveFeed() {
       </div>
 
       <div className="messages-container">
-        {activities.length === 0 ? (
+        {loading ? (
+          <div className="no-messages">Loading live activity...</div>
+        ) : error ? (
+           <div className="error" role="alert">
+            <p>{error}</p>
+           </div>
+        ) : activities.length === 0 ? (
           <div className="no-messages">Waiting for activities...</div>
         ) : (
           activities.map((activity) => (
