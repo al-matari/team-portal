@@ -1,9 +1,9 @@
 -- Teams
-INSERT INTO teams (id, name, members, active_projects, completed_this_month, efficiency) VALUES
-(1, 'Engineering', 12, 8, 23, 87),
-(2, 'Sales', 8, 15, 42, 92),
-(3, 'Marketing', 6, 11, 18, 78),
-(4, 'Support', 10, 5, 156, 94);
+INSERT INTO teams (id, name, active_projects, completed_this_month, efficiency) VALUES
+(1, 'Engineering', 8, 23, 87),
+(2, 'Sales', 15, 42, 92),
+(3, 'Marketing', 11, 18, 78),
+(4, 'Support', 5, 156, 94);
 
 -- Users
 INSERT INTO users (id, name, email, team_id) VALUES
