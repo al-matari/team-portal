@@ -16,26 +16,64 @@ function Dashboard() {
   const [stats, setStats] = useState<TeamStats | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    setLoading(true)
-    fetchTeamStats(selectedTeam).then(data => {
-      setStats(data)
-      setLoading(false)
-    })
+    let ignoreResponse = false
+
+    const loadStats = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const data = await fetchTeamStats(selectedTeam)
+        if (ignoreResponse) return
+        setStats(data)
+      } catch (err) {
+        if (ignoreResponse) return
+        setStats(null)
+        setError(err instanceof Error ? err.message : 'Unable to load team statistics.')
+      } finally {
+        if (!ignoreResponse) {
+          setLoading(false)
+        }
+      }
+    }
+
+    void loadStats()
+
+    return () => {
+      ignoreResponse = true
+    }
   }, [selectedTeam])
 
   useEffect(() => {
     if (!autoRefresh) return
 
+    let ignoreResponse = false
+
     const interval = setInterval(() => {
-      setLoading(true)
-      fetchTeamStats(selectedTeam).then(data => {
-        setStats(data)
-        setLoading(false)
-      })
+      const refreshStats = async () => {
+        setError(null)
+
+        try {
+          const data = await fetchTeamStats(selectedTeam)
+          if (ignoreResponse) return
+
+          setStats(data)
+        } catch (err) {
+          if (ignoreResponse) return
+
+          setError(err instanceof Error ? err.message : 'Unable to refresh team statistics.')
+        }
+      }
+
+      void refreshStats()
     }, 10000)
 
+    return () => {
+      ignoreResponse = true
+      clearInterval(interval)
+    }
   }, [autoRefresh, selectedTeam])
 
   const handleTeamChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -83,11 +121,18 @@ function Dashboard() {
         </div>
       )}
 
+      {error &&
+          <div className="error" role="alert">
+            <p>{error}</p>
+          </div>
+      }
+
       {loading ? (
         <div className="loading">Loading team statistics...</div>
-      ) : (
+      ) : !error ? (
         <StatsDisplay stats={stats} teamName={selectedTeam} />
-      )}
+      ) : null}
+
     </div>
   )
 }
