@@ -24,15 +24,26 @@ function UserProfile() {
     lastActive: new Date().toLocaleString()
   })
   const [recentActivity, setRecentActivity] = useState<Activity[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadActivity = async () => {
-      const activities = await fetchUserActivity()
-      setRecentActivity(activities)
+      setLoading(true)
+      setError(null)
+      try {
+        const activities = await fetchUserActivity()
+        setRecentActivity(activities)
+      } catch (err) {
+        setRecentActivity([])
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
     }
 
     loadActivity()
-  })
+  }, [])
 
   return (
     <div className="user-profile">
@@ -46,7 +57,13 @@ function UserProfile() {
         <h3>Recent Activity</h3>
 
         <div className="activity-list">
-          {recentActivity.length === 0 ? (
+          {loading ? (
+            <div className="loading">Loading recent activity...</div>
+          ) : error ? (
+            <div className="error" role="alert">
+              <p>{error}</p>
+            </div>
+          ) : recentActivity.length === 0 ? (
             <div className="no-activity">No recent activity</div>
           ) : (
             recentActivity.map((activity) => (

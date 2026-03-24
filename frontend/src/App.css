@@ -158,6 +158,19 @@
   font-size: 1.1rem;
 }
 
+.error {
+  text-align: center;
+  padding: 1.25rem;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.error p {
+  margin: 0;
+}
+
 .stats-container {
   animation: fadeIn 0.3s ease-in;
 }
