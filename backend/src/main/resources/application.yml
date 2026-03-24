@@ -25,3 +25,18 @@ spring:
   sql:
     init:
       mode: always
+
+app:
+  cors:
+    path-pattern: /api/**
+    allowed-origins:
+      - http://localhost:5173
+      - http://localhost:3000
+    allowed-methods:
+      - GET
+      - OPTIONS
+    allowed-headers:
+      - Accept
+      - Content-Type
+    allow-credentials: true
+    max-age: 3600
