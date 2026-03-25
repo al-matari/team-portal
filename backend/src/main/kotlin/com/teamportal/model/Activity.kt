@@ -19,7 +19,7 @@ class Activity(
     val action: String,
 
     @Column(nullable = false)
-    var timestamp: LocalDateTime,
+    var timestamp: LocalDateTime? = null,
 
     @field:NotNull(message = "Activity user is required")
     @ManyToOne(fetch = FetchType.LAZY)

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ActivityRepository : JpaRepository<Activity, Long> {
     @EntityGraph(attributePaths = ["user"])
-    fun findByUserId(userId: Long): List<Activity>
+    fun findByUserIdOrderByTimestampDesc(userId: Long): List<Activity>
 
     @Query(
         """

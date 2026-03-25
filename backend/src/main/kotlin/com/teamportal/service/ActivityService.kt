@@ -24,7 +24,7 @@ class ActivityService(
             ActivityDTO(
                 id = activity.id,
                 action = activity.action,
-                timestamp = activity.timestamp.format(formatter),
+                timestamp = activity.timestamp!!.format(formatter),
                 userName = activity.user?.name
             )
         }
