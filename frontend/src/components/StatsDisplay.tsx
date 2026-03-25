@@ -1,9 +1,4 @@
-interface TeamStats {
-  members: number
-  activeProjects: number
-  completedThisMonth: number
-  efficiency: number
-}
+import type { TeamStats } from '../model/api.model'
 
 interface StatsDisplayProps {
   stats: TeamStats | null

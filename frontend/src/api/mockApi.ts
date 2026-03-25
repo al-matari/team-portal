@@ -1,38 +1,7 @@
+import { parseErrorMessage } from './error.handler'
+import type { Activity, TeamStats } from '../model/api.model'
+
 const API_BASE = 'http://localhost:8080/api'
-
-interface ApiErrorResponse {
-  timestamp?: string
-  status?: number
-  error?: string
-  message?: string
-  path?: string
-}
-
-interface TeamStats {
-  members: number
-  activeProjects: number
-  completedThisMonth: number
-  efficiency: number
-}
-
-interface Activity {
-  id: number
-  action: string
-  timestamp: string
-}
-
-const parseErrorMessage = async (response: Response): Promise<string> => {
-  try {
-    const errorBody = (await response.json()) as ApiErrorResponse
-    if (errorBody.message) {
-      return errorBody.message
-    }
-  } catch {
-    return 'Unknown Error: Please contact support'
-  }
-
-  return response.statusText || 'Request failed.'
-}
 
 const fetchJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(`${API_BASE}${path}`)

@@ -1,13 +1,8 @@
 import { useState, useEffect } from 'react'
 import { fetchTeamStats } from '../api/mockApi'
+import { getErrorMessage } from '../api/error.handler'
+import type { TeamStats } from '../model/api.model'
 import StatsDisplay from './StatsDisplay'
-
-interface TeamStats {
-  members: number
-  activeProjects: number
-  completedThisMonth: number
-  efficiency: number
-}
 
 function Dashboard() {
   const [selectedTeam, setSelectedTeam] = useState<string>(() => {
@@ -31,7 +26,7 @@ function Dashboard() {
       } catch (err) {
         if (ignoreResponse) return
         setStats(null)
-        setError(err instanceof Error ? err.message : 'Unable to load team statistics.')
+        setError(getErrorMessage(err, 'Unable to load team statistics.'))
       } finally {
         if (!ignoreResponse) {
           setLoading(false)
@@ -63,7 +58,7 @@ function Dashboard() {
         } catch (err) {
           if (ignoreResponse) return
 
-          setError(err instanceof Error ? err.message : 'Unable to refresh team statistics.')
+          setError(getErrorMessage(err, 'Unable to refresh team statistics.'))
         }
       }
 

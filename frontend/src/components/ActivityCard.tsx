@@ -1,8 +1,4 @@
-interface Activity {
-  id: number
-  action: string
-  timestamp: string
-}
+import type { Activity } from '../model/api.model'
 
 interface ActivityCardProps {
   activity: Activity

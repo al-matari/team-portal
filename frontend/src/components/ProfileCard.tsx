@@ -1,9 +1,4 @@
-interface UserData {
-  name: string
-  role: string
-  email: string
-  lastActive: string
-}
+import type { UserData } from '../model/api.model'
 
 interface ProfileCardProps {
   user: UserData

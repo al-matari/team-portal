@@ -1,20 +1,12 @@
 import { useState, useEffect } from 'react'
 import { fetchFeedActivity } from '../api/mockApi'
+import { getErrorMessage } from '../api/error.handler'
+import type { Activity } from '../model/api.model'
 import ActivityCard from './ActivityCard'
-
-interface Activity {
-  id: number
-  action: string
-  timestamp: string
-}
 
 const mergeActivities = (_current: Activity[], incoming: Activity[]) => {
   return [...incoming]
     .slice(0, 100)
-}
-
-const getErrorMessage = (error: unknown) => {
-  return error instanceof Error ? error.message : 'Failed to load activities'
 }
 
 function LiveFeed() {
@@ -23,7 +15,11 @@ function LiveFeed() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  const syncActivities = async (shouldIgnore: () => boolean) => {
+  const syncActivities = async (shouldIgnore: () => boolean, isInitial: boolean) => {
+    if (isInitial) {
+      setLoading(true)
+    }
+
     try {
       const nextActivities = await fetchFeedActivity()
 
@@ -40,44 +36,30 @@ function LiveFeed() {
         return
       }
 
-      setActivities([])
-      setError(getErrorMessage(error))
-    }
-  }
+      if (isInitial) {
+        setActivities([])
+      }
 
-  useEffect(() => {
-    let ignoreResponse = false
-
-    const loadInitialActivities = async () => {
-      setLoading(true)
-      setError(null)
-
-      await syncActivities(() => ignoreResponse)
-
-      if (!ignoreResponse) {
+      setError(getErrorMessage(error, 'Failed to load activities'))
+    } finally {
+      if (!shouldIgnore() && isInitial) {
         setLoading(false)
       }
     }
-
-    loadInitialActivities()
-
-    return () => {
-      ignoreResponse = true
-    }
-  }, [])
+  }
 
   useEffect(() => {
     if (!isActive) return
 
     let ignoreResponse = false
 
-    const pollActivities = async () => {
-      await syncActivities(() => ignoreResponse)
+    const pollActivities = async (isInitial: boolean) => {
+      await syncActivities(() => ignoreResponse, isInitial)
     }
 
-    void pollActivities()
+    pollActivities(true)
     const interval = setInterval(async () => {
-      await pollActivities()
+      await pollActivities(false)
     }, 3000)
 
     return () => {
@@ -113,12 +95,13 @@ function LiveFeed() {
       </div>
 
       <div className="messages-container">
+      {error && (
+                  <div className="error" role="alert">
+                   <p>{error}</p>
+                  </div>
+               ) }
         {loading ? (
           <div className="no-messages">Loading live activity...</div>
-        ) : error ? (
-           <div className="error" role="alert">
-            <p>{error}</p>
-           </div>
         ) : activities.length === 0 ? (
           <div className="no-messages">Waiting for activities...</div>
         ) : (

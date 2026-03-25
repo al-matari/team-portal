@@ -1,20 +1,9 @@
 import { useState, useEffect } from 'react'
 import { fetchUserActivity } from '../api/mockApi'
+import { getErrorMessage } from '../api/error.handler'
+import type { Activity, UserData } from '../model/api.model'
 import ProfileCard from './ProfileCard'
 import ActivityCard from './ActivityCard'
-
-interface Activity {
-  id: number
-  action: string
-  timestamp: string
-}
-
-interface UserData {
-  name: string
-  role: string
-  email: string
-  lastActive: string
-}
 
 function UserProfile() {
   const [userData] = useState<UserData>({
@@ -36,13 +25,13 @@ function UserProfile() {
         setRecentActivity(activities)
       } catch (err) {
         setRecentActivity([])
-        setError(err.message)
+        setError(getErrorMessage(err, 'Unable to load recent activity.'))
       } finally {
         setLoading(false)
       }
     }
 
-    loadActivity()
+    void loadActivity()
   }, [])
 
   return (
